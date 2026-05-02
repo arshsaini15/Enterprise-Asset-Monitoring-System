@@ -1,11 +1,15 @@
 package com.eams.user.service;
 
-import com.eams.common.config.PasswordConfig;
+import com.eams.common.exception.DuplicateEmailException;
+import com.eams.common.exception.InvalidCredentialsException;
+import com.eams.user.dto.LoginRequestDTO;
+import com.eams.user.dto.LoginResponseDTO;
 import com.eams.user.dto.RegisterRequestDTO;
 import com.eams.user.enums.Role;
 import com.eams.user.mapper.UserMapper;
 import com.eams.user.model.User;
 import com.eams.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,21 +17,19 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final PasswordConfig passwordConfig;
+    private final PasswordEncoder passwordEncoder;
 
-
-    UserService(UserRepository userRepository, UserMapper userMapper, PasswordConfig passwordConfig) {
+    UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.passwordConfig = passwordConfig;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User register(RegisterRequestDTO dto) {
-
+    public void register(RegisterRequestDTO dto) {
         String email = dto.getEmail().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateEmailException("Email already exists");
         }
 
         User user = userMapper.toEntity(dto);
@@ -39,9 +41,25 @@ public class UserService {
         }
 
         user.setEmail(email);
-        user.setPassword(passwordConfig.encodePassword().encode(dto.getPassword()));
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
-        return userRepository.save(user);
+        userRepository.save(user);
+    }
 
+    public LoginResponseDTO login(LoginRequestDTO dto) {
+        String email = dto.getEmail().toLowerCase();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+
+        return new LoginResponseDTO(
+                "Login successful",
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }
