@@ -12,8 +12,13 @@ import com.eams.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -26,9 +31,13 @@ public class UserService {
     }
 
     public void register(RegisterRequestDTO dto) {
+
         String email = dto.getEmail().toLowerCase();
 
+        log.info("Attempting registration for email={}", email);
+
         if (userRepository.existsByEmail(email)) {
+            log.warn("Duplicate email detected for email={}", email);
             throw new DuplicateEmailException("Email already exists");
         }
 
@@ -44,17 +53,27 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         userRepository.save(user);
+
+        log.info("User registered successfully for email={}", email);
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
         String email = dto.getEmail().toLowerCase();
 
+        log.info("Login attempt for email={}", email);
+
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
+                .orElseThrow(() -> {
+                    log.warn("Login failed - user not found for email={}", email);
+                    return new InvalidCredentialsException("Invalid credentials");
+                });
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            log.warn("Login failed - invalid password for email={}", email);
             throw new InvalidCredentialsException("Invalid credentials");
         }
+
+        log.info("Login successful for email={}", email);
 
         return new LoginResponseDTO(
                 "Login successful",
