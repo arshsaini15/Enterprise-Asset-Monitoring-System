@@ -4,10 +4,11 @@ import com.eams.asset.dto.AssetRequestDTO;
 import com.eams.asset.dto.AssetResponseDTO;
 import com.eams.asset.service.AssetService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/assets")
@@ -25,8 +26,8 @@ public class AssetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AssetResponseDTO>> getAllAssets() {
-        return ResponseEntity.ok(service.getAllAssets());
+    public ResponseEntity<Page<AssetResponseDTO>> getAllAssets(Pageable pageable) {
+        return ResponseEntity.ok(service.getAllAssets(pageable));
     }
 
     @GetMapping("/{id}")
@@ -35,8 +36,11 @@ public class AssetController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<AssetResponseDTO>> getAssetsByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(service.getAssetsByUser(userId));
+    public ResponseEntity<Page<AssetResponseDTO>> getAssetsByUser(
+            @PathVariable Long userId,
+            Pageable pageable) {
+
+        return ResponseEntity.ok(service.getAssetsByUser(userId, pageable));
     }
 
     @PutMapping("/{id}")

@@ -14,9 +14,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,17 +53,13 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public List<AssetResponseDTO> getAllAssets() {
+    public Page<AssetResponseDTO> getAllAssets(Pageable pageable) {
 
-        log.info("Fetching all assets");
+        log.info("Fetching assets with pagination: page={}, size={}",
+                pageable.getPageNumber(), pageable.getPageSize());
 
-        List<Asset> assets = assetRepository.findAll();
-
-        log.info("Total assets fetched: {}", assets.size());
-
-        return assets.stream()
-                .map(assetMapper::toResponseDto)
-                .toList();
+        return assetRepository.findAll(pageable)
+                .map(assetMapper::toResponseDto);
     }
 
     @Override
@@ -80,21 +77,16 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public List<AssetResponseDTO> getAssetsByUser(Long userId) {
+    public Page<AssetResponseDTO> getAssetsByUser(Long userId, Pageable pageable) {
 
-        log.info("Fetching assets for userId: {}", userId);
+        log.info("Fetching assets for userId {} with pagination", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException("User with id " + userId + " not found"));
 
-        List<Asset> assets = assetRepository.findByAssignedTo(user);
-
-        log.info("Found {} assets for userId: {}", assets.size(), userId);
-
-        return assets.stream()
-                .map(assetMapper::toResponseDto)
-                .toList();
+        return assetRepository.findByAssignedTo(user, pageable)
+                .map(assetMapper::toResponseDto);
     }
 
     @Override

@@ -27,6 +27,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/admin/**").hasRole("MANAGER")
 
+                        .requestMatchers("/api/assets/**").permitAll()
+
                         .requestMatchers("/api/operator/**")
                         .hasAnyRole("MANAGER", "OPERATOR")
 
