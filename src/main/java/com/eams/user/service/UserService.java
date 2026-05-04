@@ -2,6 +2,7 @@ package com.eams.user.service;
 
 import com.eams.common.exception.DuplicateEmailException;
 import com.eams.common.exception.InvalidCredentialsException;
+import com.eams.common.util.JwtUtil;
 import com.eams.user.dto.LoginRequestDTO;
 import com.eams.user.dto.LoginResponseDTO;
 import com.eams.user.dto.RegisterRequestDTO;
@@ -23,14 +24,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
-    public void register(RegisterRequestDTO dto) {
+    public LoginResponseDTO register(RegisterRequestDTO dto) {
 
         String email = dto.getEmail().toLowerCase();
 
@@ -55,9 +58,13 @@ public class UserService {
         userRepository.save(user);
 
         log.info("User registered successfully for email={}", email);
+        String token = jwtUtil.generateToken(email);
+
+        return new LoginResponseDTO(token);
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
+
         String email = dto.getEmail().toLowerCase();
 
         log.info("Login attempt for email={}", email);
@@ -73,12 +80,10 @@ public class UserService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
+        String token = jwtUtil.generateToken(user.getEmail());
+
         log.info("Login successful for email={}", email);
 
-        return new LoginResponseDTO(
-                "Login successful",
-                user.getEmail(),
-                user.getRole()
-        );
+        return new LoginResponseDTO(token);
     }
 }

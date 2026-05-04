@@ -27,15 +27,15 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody @Valid RegisterRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> register(@RequestBody @Valid RegisterRequestDTO dto) {
 
         log.info("Register request received for email={}", dto.getEmail());
 
-        userService.register(dto);
+        LoginResponseDTO response = userService.register(dto);
 
         log.info("User registered successfully for email={}", dto.getEmail());
 
-        return ResponseEntity.ok("User registered successfully.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
