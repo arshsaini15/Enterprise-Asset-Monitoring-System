@@ -1,6 +1,5 @@
 package com.eams.user.dto;
 
-import com.eams.user.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -58,7 +58,11 @@ public class UserService {
         userRepository.save(user);
 
         log.info("User registered successfully for email={}", email);
-        String token = jwtUtil.generateToken(email);
+
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
 
         return new LoginResponseDTO(token);
     }
@@ -80,7 +84,11 @@ public class UserService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+
 
         log.info("Login successful for email={}", email);
 
