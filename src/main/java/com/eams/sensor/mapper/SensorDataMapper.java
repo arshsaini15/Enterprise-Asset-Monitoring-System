@@ -6,7 +6,7 @@ import com.eams.sensor.model.SensorData;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface SensorMapper {
+public interface SensorDataMapper {
 
     SensorData toEntity(SensorDataRequestDTO dto);
 

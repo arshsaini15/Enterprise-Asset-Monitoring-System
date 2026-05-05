@@ -5,10 +5,10 @@ import com.eams.asset.repository.AssetRepository;
 import com.eams.common.exception.AssetNotFoundException;
 import com.eams.sensor.dto.SensorDataRequestDTO;
 import com.eams.sensor.dto.SensorDataResponseDTO;
-import com.eams.sensor.mapper.SensorMapper;
+import com.eams.sensor.mapper.SensorDataMapper;
 import com.eams.sensor.model.SensorData;
 import com.eams.sensor.repository.SensorRepository;
-import com.eams.sensor.service.SensorService;
+import com.eams.sensor.service.SensorDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,15 +17,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class SensorServiceImpl implements SensorService {
+public class SensorDataServiceImpl implements SensorDataService {
 
-    private static final Logger log = LoggerFactory.getLogger(SensorServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(SensorDataServiceImpl.class);
 
     private final SensorRepository sensorRepository;
     private final AssetRepository assetRepository;
-    private final SensorMapper sensorMapper;
+    private final SensorDataMapper sensorMapper;
 
-    public SensorServiceImpl(SensorRepository sensorRepository, AssetRepository assetRepository, SensorMapper sensorMapper) {
+    public SensorDataServiceImpl(SensorRepository sensorRepository, AssetRepository assetRepository, SensorDataMapper sensorMapper) {
         this.sensorRepository = sensorRepository;
         this.assetRepository = assetRepository;
         this.sensorMapper = sensorMapper;
