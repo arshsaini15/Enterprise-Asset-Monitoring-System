@@ -9,6 +9,7 @@ import com.eams.sensor.mapper.SensorDataMapper;
 import com.eams.sensor.model.SensorData;
 import com.eams.sensor.repository.SensorRepository;
 import com.eams.sensor.service.SensorDataService;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class SensorDataServiceImpl implements SensorDataService {
     }
 
     @Override
+    @Transactional
     public void sendSensorData(SensorDataRequestDTO dto) {
 
         Asset asset = getAssetOrThrow(dto.getAssetId());
