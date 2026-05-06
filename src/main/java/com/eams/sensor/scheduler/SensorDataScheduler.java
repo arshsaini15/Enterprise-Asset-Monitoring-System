@@ -24,8 +24,8 @@ public class SensorDataScheduler {
 
     private final Random random = new Random();
 
-    // Runs every 7 seconds
-    @Scheduled(fixedRate = 7000)
+    // Runs every 30 seconds
+    @Scheduled(fixedRate = 30000)
     public void generateSensorData() {
 
         List<Asset> assets = assetRepository.findAll();

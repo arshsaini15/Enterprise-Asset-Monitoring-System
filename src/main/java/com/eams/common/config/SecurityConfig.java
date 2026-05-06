@@ -29,7 +29,12 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/assets/**").permitAll()
 
+                        .requestMatchers("/api/sensors/**").permitAll()
+
+                        .requestMatchers("/api/alerts/**").permitAll()
+
                         .requestMatchers("/api/operator/**")
+
                         .hasAnyRole("MANAGER", "OPERATOR")
 
                         .anyRequest().authenticated()
