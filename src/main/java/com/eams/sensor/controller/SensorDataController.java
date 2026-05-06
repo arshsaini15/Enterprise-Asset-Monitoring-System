@@ -20,7 +20,7 @@ public class SensorDataController {
     }
 
     @PostMapping("/send-data")
-    public ResponseEntity<?> sendData(@Valid @RequestBody SensorDataRequestDTO dto) {
+    public ResponseEntity<String> sendData(@Valid @RequestBody SensorDataRequestDTO dto) {
         sensorService.sendSensorData(dto);
         return ResponseEntity.ok("Sensor data processed");
     }
