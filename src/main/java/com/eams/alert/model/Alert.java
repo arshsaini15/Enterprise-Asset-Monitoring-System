@@ -35,5 +35,4 @@ public class Alert {
 
     @Column(nullable = false)
     private LocalDateTime triggeredAt;
-
 }

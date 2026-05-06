@@ -70,6 +70,8 @@ public class AlertServiceImpl implements AlertService {
                         new ResourceNotFoundException("Alert with id " + alertId + " not found"));
 
         alert.setStatus(AlertStatus.RESOLVED);
+        alert.setMessage("Alert resolved with id{}" + alertId + " at " + LocalDateTime.now());
+        alert.setTriggeredAt(LocalDateTime.now());
 
         alertRepository.save(alert);
 
