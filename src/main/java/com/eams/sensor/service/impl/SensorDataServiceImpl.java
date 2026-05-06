@@ -4,6 +4,7 @@ import com.eams.alert.enums.AlertStatus;
 import com.eams.alert.enums.AlertType;
 import com.eams.alert.model.Alert;
 import com.eams.alert.repository.AlertRepository;
+import com.eams.alert.service.AlertService;
 import com.eams.asset.model.Asset;
 import com.eams.asset.repository.AssetRepository;
 import com.eams.common.exception.AssetNotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SensorDataServiceImpl implements SensorDataService {
@@ -30,12 +32,14 @@ public class SensorDataServiceImpl implements SensorDataService {
     private final AssetRepository assetRepository;
     private final SensorDataMapper sensorMapper;
     private final AlertRepository alertRepository;
+    private final AlertService alertService;
 
-    public SensorDataServiceImpl(SensorRepository sensorRepository, AssetRepository assetRepository, SensorDataMapper sensorMapper, AlertRepository alertRepository) {
+    public SensorDataServiceImpl(SensorRepository sensorRepository, AssetRepository assetRepository, SensorDataMapper sensorMapper, AlertRepository alertRepository, AlertService alertService) {
         this.sensorRepository = sensorRepository;
         this.assetRepository = assetRepository;
         this.sensorMapper = sensorMapper;
         this.alertRepository = alertRepository;
+        this.alertService = alertService;
     }
 
     @Override
@@ -68,9 +72,23 @@ public class SensorDataServiceImpl implements SensorDataService {
 
         Asset asset = data.getAsset();
 
-        if (data.getTemperature() != null
-                && asset.getThresholdTemp() != null
-                && data.getTemperature() > asset.getThresholdTemp()) {
+        // =========================
+        // TEMPERATURE ALERT LOGIC
+        // =========================
+
+        boolean tempExceeded =
+                data.getTemperature() != null
+                        && asset.getThresholdTemp() != null
+                        && data.getTemperature() > asset.getThresholdTemp();
+
+        Optional<Alert> activeTempAlert =
+                alertRepository.findByAssetAndTypeAndStatus(
+                        asset,
+                        AlertType.TEMP_HIGH,
+                        AlertStatus.ACTIVE
+                );
+
+        if (tempExceeded) {
 
             log.warn("Temperature threshold exceeded for asset id {} ({}): {} > {}",
                     asset.getId(),
@@ -78,12 +96,40 @@ public class SensorDataServiceImpl implements SensorDataService {
                     data.getTemperature(),
                     asset.getThresholdTemp());
 
-            createAlert(asset, "Temperature threshold exceeded", "TEMP_HIGH");
+            // Create alert ONLY if no active alert exists
+            if (activeTempAlert.isEmpty()) {
+
+                alertService.createAlert(
+                        asset,
+                        AlertType.TEMP_HIGH,
+                        "Temperature exceeded threshold"
+                );
+            }
+
+        } else {
+
+            // Resolve existing active alert if temperature becomes normal
+            activeTempAlert.ifPresent(alertService::resolveAlert);
         }
 
-        if (data.getPressure() != null
-                && asset.getThresholdPressure() != null
-                && data.getPressure() > asset.getThresholdPressure()) {
+
+        // ======================
+        // PRESSURE ALERT LOGIC
+        // ======================
+
+        boolean pressureExceeded =
+                data.getPressure() != null
+                        && asset.getThresholdPressure() != null
+                        && data.getPressure() > asset.getThresholdPressure();
+
+        Optional<Alert> activePressureAlert =
+                alertRepository.findByAssetAndTypeAndStatus(
+                        asset,
+                        AlertType.PRESSURE_HIGH,
+                        AlertStatus.ACTIVE
+                );
+
+        if (pressureExceeded) {
 
             log.warn("Pressure threshold exceeded for asset id {} ({}): {} > {}",
                     asset.getId(),
@@ -91,7 +137,20 @@ public class SensorDataServiceImpl implements SensorDataService {
                     data.getPressure(),
                     asset.getThresholdPressure());
 
-            createAlert(asset, "Pressure threshold exceeded", "PRESSURE_HIGH");
+            // Create alert ONLY if no active alert exists
+            if (activePressureAlert.isEmpty()) {
+
+                alertService.createAlert(
+                        asset,
+                        AlertType.PRESSURE_HIGH,
+                        "Pressure exceeded threshold"
+                );
+            }
+
+        } else {
+
+            // Resolve existing active alert if pressure becomes normal
+            activePressureAlert.ifPresent(alertService::resolveAlert);
         }
     }
 
