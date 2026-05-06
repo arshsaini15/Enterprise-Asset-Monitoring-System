@@ -2,6 +2,7 @@ package com.eams.alert.service;
 
 import com.eams.alert.dto.AlertResponseDTO;
 import com.eams.alert.enums.AlertType;
+import com.eams.alert.model.Alert;
 import com.eams.asset.model.Asset;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface AlertService {
     List<AlertResponseDTO> getAllAlerts();
 
     void resolveAlert(Long alertId);
+
+    public void resolveAlert(Alert alert);
 }

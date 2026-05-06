@@ -77,4 +77,14 @@ public class AlertServiceImpl implements AlertService {
 
         log.info("Alert with id {} marked as RESOLVED", alertId);
     }
+
+    @Override
+    public void resolveAlert(Alert alert) {
+
+        alert.setStatus(AlertStatus.RESOLVED);
+
+        alertRepository.save(alert);
+
+        log.info("Alert resolved for asset {}", alert.getAsset().getId());
+    }
 }
