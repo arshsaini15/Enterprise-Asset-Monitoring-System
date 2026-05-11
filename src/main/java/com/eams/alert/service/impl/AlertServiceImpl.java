@@ -9,6 +9,9 @@ import com.eams.alert.repository.AlertRepository;
 import com.eams.alert.service.AlertService;
 import com.eams.asset.model.Asset;
 import com.eams.common.exception.ResourceNotFoundException;
+import com.eams.maintenance.enums.MaintenanceStatus;
+import com.eams.maintenance.model.MaintenanceLog;
+import com.eams.maintenance.repository.MaintenanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +28,7 @@ public class AlertServiceImpl implements AlertService {
 
     private final AlertRepository alertRepository;
     private final AlertMapper alertMapper;
+    private final MaintenanceRepository maintenanceRepository;
 
     @Override
     public void createAlert(Asset asset, AlertType type, String message) {
@@ -39,11 +43,38 @@ public class AlertServiceImpl implements AlertService {
 
         alertRepository.save(alert);
 
-        log.warn("ALERT CREATED → Asset id {} ({}), Type: {}, Message: {}",
-                asset.getId(),
-                asset.getName(),
-                type,
-                message);
+        boolean activeMaintenanceExists =
+                maintenanceRepository
+                        .existsByAssetAssetIdAndStatusIn(
+                                asset.getId(),
+                                List.of(
+                                        MaintenanceStatus.SCHEDULED,
+                                        MaintenanceStatus.IN_PROGRESS
+                                ));
+
+        if(!activeMaintenanceExists) {
+            log.info("Maintenance Log creation initiated.");
+
+            MaintenanceLog maintenanceLog = new MaintenanceLog();
+
+            maintenanceLog.setAsset(asset);
+            maintenanceLog.setStatus(MaintenanceStatus.SCHEDULED);
+            maintenanceLog.setScheduledDate(LocalDateTime.now().plusDays(1));
+            maintenanceLog.setRemarks("Auto-generated maintenance due to " + type + " alert");
+
+            maintenanceRepository.save(maintenanceLog);
+
+            log.info("Maintenance Log created.");
+
+            log.warn("ALERT CREATED → Asset id {} ({}), Type: {}, Message: {}",
+                    asset.getId(),
+                    asset.getName(),
+                    type,
+                    message);
+        } else {
+            log.info("Active maintenance already exists for asset {}. Skipping new maintenance log creation.",
+                    asset.getId());
+        }
     }
 
     @Override
