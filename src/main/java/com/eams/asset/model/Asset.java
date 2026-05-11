@@ -1,6 +1,7 @@
 package com.eams.asset.model;
 
 import com.eams.asset.enums.AssetType;
+import com.eams.asset.enums.AssetStatus;
 import com.eams.user.model.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,10 @@ public class Asset {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AssetType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AssetStatus currentStatus = AssetStatus.UP;
 
     @NotBlank(message = "Location is mandatory")
     @Column(nullable = false, length = 150)

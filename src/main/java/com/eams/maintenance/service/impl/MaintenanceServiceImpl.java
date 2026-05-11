@@ -5,6 +5,8 @@ import com.eams.asset.repository.AssetRepository;
 import com.eams.common.exception.ResourceNotFoundException;
 import com.eams.maintenance.dto.MaintenanceRequestDTO;
 import com.eams.maintenance.dto.MaintenanceResponseDTO;
+import com.eams.asset.enums.AssetStatus;
+import com.eams.uptime.service.UptimeService;
 import com.eams.maintenance.enums.MaintenanceStatus;
 import com.eams.maintenance.mapper.MaintenanceMapper;
 import com.eams.maintenance.model.MaintenanceLog;
@@ -24,10 +26,9 @@ import java.util.stream.Collectors;
 public class MaintenanceServiceImpl implements MaintenanceService {
 
     private final MaintenanceRepository maintenanceRepository;
-
     private final AssetRepository assetRepository;
-
     private final MaintenanceMapper maintenanceMapper;
+    private final UptimeService uptimeService;
 
     @Override
     public MaintenanceResponseDTO scheduleMaintenance(MaintenanceRequestDTO dto) {
@@ -42,13 +43,9 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         MaintenanceLog maintenanceLog = new MaintenanceLog();
 
         maintenanceLog.setAsset(asset);
-
         maintenanceLog.setStatus(MaintenanceStatus.SCHEDULED);
-
         maintenanceLog.setScheduledDate(dto.getScheduledDate());
-
         maintenanceLog.setRemarks(dto.getRemarks());
-
         MaintenanceLog savedLog = maintenanceRepository.save(maintenanceLog);
 
         return maintenanceMapper.toDto(savedLog);
@@ -61,17 +58,14 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         MaintenanceLog maintenanceLog = getMaintenanceById(maintenanceId);
 
         if (maintenanceLog.getStatus() == MaintenanceStatus.COMPLETED) {
-
             throw new IllegalStateException("Completed maintenance cannot be restarted");
         }
 
         if (maintenanceLog.getStatus() == MaintenanceStatus.CANCELLED) {
-
             throw new IllegalStateException("Cancelled maintenance cannot be started");
         }
 
         maintenanceLog.setStatus(MaintenanceStatus.IN_PROGRESS);
-
         MaintenanceLog updatedLog = maintenanceRepository.save(maintenanceLog);
 
         return maintenanceMapper.toDto(updatedLog);
@@ -95,6 +89,8 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         maintenanceLog.setStatus(MaintenanceStatus.COMPLETED);
 
         maintenanceLog.setCompletedDate(LocalDateTime.now());
+
+        uptimeService.changeAssetStatus(maintenanceLog.getAsset(), AssetStatus.UP);
 
         MaintenanceLog updatedLog = maintenanceRepository.save(maintenanceLog);
 

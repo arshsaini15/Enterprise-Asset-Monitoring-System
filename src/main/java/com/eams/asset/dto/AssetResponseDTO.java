@@ -1,5 +1,6 @@
 package com.eams.asset.dto;
 
+import com.eams.asset.enums.AssetStatus;
 import com.eams.asset.enums.AssetType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,4 +28,6 @@ public class AssetResponseDTO {
     private Long assignedUserId;
 
     private String assignedUserName;
+
+    private AssetStatus currentStatus;
 }

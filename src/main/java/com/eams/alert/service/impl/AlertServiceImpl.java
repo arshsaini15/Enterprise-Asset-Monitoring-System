@@ -7,11 +7,13 @@ import com.eams.alert.mapper.AlertMapper;
 import com.eams.alert.model.Alert;
 import com.eams.alert.repository.AlertRepository;
 import com.eams.alert.service.AlertService;
+import com.eams.asset.enums.AssetStatus;
 import com.eams.asset.model.Asset;
 import com.eams.common.exception.ResourceNotFoundException;
 import com.eams.maintenance.enums.MaintenanceStatus;
 import com.eams.maintenance.model.MaintenanceLog;
 import com.eams.maintenance.repository.MaintenanceRepository;
+import com.eams.uptime.service.UptimeService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ public class AlertServiceImpl implements AlertService {
     private final AlertRepository alertRepository;
     private final AlertMapper alertMapper;
     private final MaintenanceRepository maintenanceRepository;
+    private final UptimeService uptimeService;
 
     @Override
     public void createAlert(Asset asset, AlertType type, String message) {
@@ -75,6 +78,8 @@ public class AlertServiceImpl implements AlertService {
             log.info("Active maintenance already exists for asset {}. Skipping new maintenance log creation.",
                     asset.getId());
         }
+
+        uptimeService.changeAssetStatus(asset, AssetStatus.DOWN);
     }
 
     @Override
